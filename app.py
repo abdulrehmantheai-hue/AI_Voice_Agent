@@ -30,7 +30,7 @@ engine = create_engine(DATABASE_URL, connect_args={'check_same_thread': False} i
 SessionLocal = sessionmaker(bind=engine, expire_on_commit=False)
 API_KEY = os.getenv('API_KEY', '')
 DASHBOARD_PASSWORD = os.getenv('DASHBOARD_PASSWORD', '')
-WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET', '')
+WEBHOOK_SECRET = os.getenv('VAPI_WEBHOOK_SECRET') or os.getenv('WEBHOOK_SECRET', '')
 COOKIE_SECURE = os.getenv('COOKIE_SECURE', 'false').lower() == 'true'
 logger = logging.getLogger(__name__)
 
@@ -343,7 +343,7 @@ async def dashboard_me(request: Request):
 @app.post('/vapi/webhook')
 async def vapi_webhook(request: Request, db: Session = Depends(session)):
     # Vapi Function tools should use header X-Webhook-Secret, configured in tool secret headers.
-    header = request.headers.get('x-webhook-secret', 'vapi_wh_6Qz9Nf3Kx8R2mT7Wp5Yc1Hd4Js0VaB')
+    header = request.headers.get('x-webhook-secret', '')
     if not WEBHOOK_SECRET or not secrets.compare_digest(header, WEBHOOK_SECRET):
         raise HTTPException(401, 'Invalid webhook secret')
     body = await request.json()
